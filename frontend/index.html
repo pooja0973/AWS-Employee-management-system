@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="app.mjs" type="module"></script>
+</head>
+<body>
+	<div id="user">
+	Checking user...
+	</div>
+	<button id="loginButton">Login</button>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management</title>
+</head>
+<body>
+    <h1>Employee Management</h1>
+
+    <!-- Form for adding a new employee -->
+    <h2>Add New Employee</h2>
+    <form id="addEmployeeForm">
+        <label for="id">ID:</label>
+        <input type="text" id="id" name="id" required>
+        <br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age" required>
+        <br>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+        <br>
+        <label for="position">Position:</label>
+        <input type="text" id="position" name="position" required>
+        <br>
+        <label for="department">Department:</label>
+        <input type="text" id="department" name="department" required>
+        <br>
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="tel" id="phoneNumber" name="phoneNumber" required>
+        <br>
+        <label for="convicted">Convicted:</label>
+        <input type="checkbox" id="convicted" name="convicted">
+        <br>
+        <button type="button" onclick="addEmployee()">Add Employee</button>
+    </form>
+
+    <!-- Table for displaying employee records -->
+    <h2>All Employees</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Address</th>
+            <th>Position</th>
+            <th>Department</th>
+            <th>Phone Number</th>
+            <th>Convicted</th>
+            <th>Actions</th>
+        </tr>
+        <tbody id="employeesTableBody"></tbody>
+    </table>
+
+    <script>
+        async function addEmployee() {
+            const id = document.getElementById('id').value;
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const address = document.getElementById('address').value;
+            const position = document.getElementById('position').value;
+            const department = document.getElementById('department').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const convicted = document.getElementById('convicted').checked;
+
+            // Construct the request body
+            const requestData = {
+                ID: id,
+                Name: name,
+                Age: parseInt(age),
+                Address: address,
+                Position: position,
+                Department: department,
+                PhoneNumber: phoneNumber,
+                Convicted: convicted
+            };
+
+            try {
+                const response = await fetch('https://k2734tnglc.execute-api.eu-central-1.amazonaws.com/dev/employeeData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify([requestData]), // Modified to pass an array
+                });
+
+                if (response.ok) {
+                    alert('Employee added successfully!');
+                    fetchAndDisplayEmployees();
+                } else {
+                    const errorText = await response.text();
+                    alert(`Error: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error adding employee:', error);
+            }
+        }
+
+        async function fetchAndDisplayEmployees() {
+            try {
+                const response = await fetch('https://k2734tnglc.execute-api.eu-central-1.amazonaws.com/dev/employeeData', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const employees = await response.json();
+                    displayEmployees(employees);
+                } else {
+                    const errorText = await response.text();
+                    alert(`Error fetching employee records: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error fetching employee records:', error);
+            }
+        }
+
+        function displayEmployees(employees) {
+            const tableBody = document.getElementById('employeesTableBody');
+            tableBody.innerHTML = '';
+
+            employees.forEach((employee) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.ID}</td>
+                    <td>${employee.Name}</td>
+                    <td>${employee.Age}</td>
+                    <td>${employee.Address}</td>
+                    <td>${employee.Position}</td>
+                    <td>${employee.Department}</td>
+                    <td>${employee.PhoneNumber}</td>
+                    <td>${employee.Convicted ? 'Yes' : 'No'}</td>
+                    <td><button onclick="deleteEmployee('${employee.ID}')">Delete</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function deleteEmployee(ID) {
+            try {
+                const response = await fetch(`https://k2734tnglc.execute-api.eu-central-1.amazonaws.com/dev/employeeData?ID=${ID}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    alert('Employee deleted successfully!');
+                    fetchAndDisplayEmployees();
+                } else {
+                    const errorText = await response.text();
+                    alert(`Error deleting employee: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error deleting employee:', error);
+            }
+        }
+
+        // Call the function to load employee records when the page loads
+        fetchAndDisplayEmployees();
+    </script>
+</body>
+</html>
